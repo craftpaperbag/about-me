@@ -13,10 +13,10 @@ body {
 }
 h1 { font-size: 1.6rem; letter-spacing: 0.18em; }
 header { margin-bottom: var(--section-gap); }
-header small { opacity: 0.6; font-size: 0.95rem; display: block; }
+header p { opacity: 0.6; font-size: 0.95rem; }
 a { text-decoration: underline; text-underline-offset: 0.25em; }
 nav ul { list-style: none; padding: 0; }
 nav li { margin-bottom: 1rem; }
 nav a { letter-spacing: 0.05em; }
 footer { margin-top: var(--section-gap); }
-footer small { opacity: 0.4; font-size: 0.85rem; display: block; }
+footer small { opacity: 0.4; font-size: 0.85rem; }
