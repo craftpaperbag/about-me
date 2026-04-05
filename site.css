@@ -1,9 +1,22 @@
-:root { --letter-spacing: 0.08em; --line-height: 2; }
-body { max-width: 540px; margin: 0 auto; font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif; letter-spacing: var(--letter-spacing); line-height: var(--line-height); padding: 3rem 1.5rem; }
-h1 { font-size: 1.6rem; letter-spacing: 0.18em; margin-bottom: 0.2rem; }
-header small { opacity: 0.6; font-size: 0.95rem; margin-top: 0; margin-bottom: 3rem; display: block; }
+:root {
+  --letter-spacing: 0.08em;
+  --line-height: 2;
+  --section-gap: 2.5rem;
+}
+body {
+  max-width: 34rem;
+  margin: 0 auto;
+  font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  letter-spacing: var(--letter-spacing);
+  line-height: var(--line-height);
+  padding: 3rem 1.5rem;
+}
+h1 { font-size: 1.6rem; letter-spacing: 0.18em; }
+header { margin-bottom: var(--section-gap); }
+header small { opacity: 0.6; font-size: 0.95rem; display: block; }
 a { text-decoration: underline; text-underline-offset: 0.25em; }
 nav ul { list-style: none; padding: 0; }
 nav li { margin-bottom: 1rem; }
 nav a { letter-spacing: 0.05em; }
-footer small { opacity: 0.4; font-size: 0.85rem; margin-top: 4rem; display: block; }
+footer { margin-top: var(--section-gap); }
+footer small { opacity: 0.4; font-size: 0.85rem; display: block; }
