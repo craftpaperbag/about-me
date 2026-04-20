@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>draft.md — こはるなぎ</title>
+<meta name="description" content="下書きのまま生きている。">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+    overflow: hidden;
+  }
+  * { box-sizing: border-box; }
+  a { color: inherit; }
+
+  /* Themes via CSS variables */
+  body[data-theme="default-dark"] {
+    --bg: #0d0e0c; --chrome: #17181514; --chrome-bg: #16170f;
+    --fg: #d8d4c8; --dim: rgba(216,212,200,0.5); --hair: rgba(216,212,200,0.1);
+    --accent: #d97757; --accent-alt: #7aa37a; --blue: #7a9cc6; --yellow: #d9b957;
+    --sel: rgba(217,119,87,0.25);
+  }
+  body[data-theme="solarized-dark"] {
+    --bg: #002b36; --chrome-bg: #073642;
+    --fg: #93a1a1; --dim: rgba(147,161,161,0.55); --hair: rgba(147,161,161,0.14);
+    --accent: #cb4b16; --accent-alt: #859900; --blue: #268bd2; --yellow: #b58900;
+    --sel: rgba(203,75,22,0.22);
+  }
+  body[data-theme="dracula"] {
+    --bg: #282a36; --chrome-bg: #21222c;
+    --fg: #f8f8f2; --dim: rgba(248,248,242,0.5); --hair: rgba(248,248,242,0.12);
+    --accent: #ff79c6; --accent-alt: #50fa7b; --blue: #8be9fd; --yellow: #f1fa8c;
+    --sel: rgba(255,121,198,0.2);
+  }
+  body[data-theme="nord"] {
+    --bg: #2e3440; --chrome-bg: #272b35;
+    --fg: #d8dee9; --dim: rgba(216,222,233,0.55); --hair: rgba(216,222,233,0.12);
+    --accent: #bf616a; --accent-alt: #a3be8c; --blue: #88c0d0; --yellow: #ebcb8b;
+    --sel: rgba(191,97,106,0.22);
+  }
+  body[data-theme="paper-light"] {
+    --bg: #f5f3ec; --chrome-bg: #e8e5dc;
+    --fg: #1b1a17; --dim: rgba(27,26,23,0.5); --hair: rgba(27,26,23,0.12);
+    --accent: #b84a3d; --accent-alt: #6b7a3d; --blue: #4a6b8a; --yellow: #9c7a2b;
+    --sel: rgba(184,74,61,0.18);
+  }
+
+  body {
+    background: var(--bg); color: var(--fg);
+    display: flex; flex-direction: column; height: 100vh;
+  }
+
+  /* Window chrome */
+  .chrome {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px; background: var(--chrome-bg);
+    border-bottom: 1px solid var(--hair);
+    font-size: 11px; color: var(--dim); letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+  .chrome .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .chrome .dot.r { background: #ff5f56; } .chrome .dot.y { background: #ffbd2e; } .chrome .dot.g { background: #27c93f; }
+  .chrome .file { margin-left: 16px; color: var(--fg); opacity: 0.8; }
+  .chrome .file .mod { color: var(--accent); margin-left: 6px; }
+  .chrome .right { margin-left: auto; display: flex; gap: 14px; align-items: center; }
+  .chrome select {
+    background: transparent; color: var(--fg); border: 1px solid var(--hair);
+    padding: 3px 6px; font-family: inherit; font-size: 10px; letter-spacing: 0.1em;
+    cursor: pointer;
+  }
+
+  /* Tab bar */
+  .tabs {
+    display: flex; background: var(--chrome-bg);
+    border-bottom: 1px solid var(--hair); font-size: 11px;
+    letter-spacing: 0.08em; flex-shrink: 0;
+  }
+  .tabs .tab {
+    padding: 9px 16px; color: var(--dim);
+    border-right: 1px solid var(--hair); cursor: default;
+  }
+  .tabs .tab.active {
+    background: var(--bg); color: var(--fg);
+    box-shadow: inset 0 2px 0 var(--accent);
+  }
+  .tabs .path { margin-left: auto; padding: 9px 16px; color: var(--dim); font-size: 10px; }
+
+  /* Main editor */
+  .editor {
+    flex: 1; display: grid; grid-template-columns: 56px 1fr 88px;
+    overflow: hidden; min-height: 0;
+  }
+  .gutter {
+    padding: 20px 12px 20px 16px; text-align: right;
+    color: var(--dim); border-right: 1px solid var(--hair);
+    user-select: none; font-size: 13px; line-height: 1.85;
+    overflow: hidden;
+  }
+  .gutter .ln.cursor { color: var(--accent); }
+  .doc {
+    padding: 20px 28px; overflow-y: auto;
+    font-size: 13px; line-height: 1.85; position: relative;
+  }
+  .doc .ln { min-height: 1.85em; white-space: pre-wrap; word-break: break-word; }
+  .doc .ln.current { background: color-mix(in oklab, var(--accent) 8%, transparent); margin: 0 -28px; padding: 0 28px; }
+
+  .tok-comment { color: var(--dim); font-style: italic; }
+  .tok-h1mark, .tok-h2mark { color: var(--accent); }
+  .tok-h1 { color: var(--fg); font-family: "Noto Sans JP", sans-serif; font-size: 28px; letter-spacing: 0.14em; font-weight: 600; }
+  body.serif .tok-h1, body.serif .tok-quote-jp, body.serif .tok-jp { font-family: "Noto Serif JP", serif; font-weight: 500; }
+  .tok-h2 { color: var(--fg); font-weight: 600; letter-spacing: 0.06em; }
+  .tok-quote-mark { color: var(--accent); }
+  .tok-quote-jp { color: var(--fg); font-family: "Noto Sans JP", sans-serif; font-size: 15px; letter-spacing: 0.12em; font-style: italic; }
+  .tok-jp { color: var(--fg); font-family: "Noto Sans JP", sans-serif; font-size: 13.5px; letter-spacing: 0.06em; }
+  .tok-bracket { color: var(--dim); }
+  .tok-linkname { color: var(--blue); text-decoration: underline; text-underline-offset: 2px; font-family: "Noto Sans JP", sans-serif; }
+  body.serif .tok-linkname { font-family: "Noto Serif JP", serif; }
+  .tok-url { color: var(--accent-alt); font-style: italic; }
+  .tok-dash { color: var(--dim); }
+  .tok-bullet { color: var(--yellow); }
+  .tok-em { color: var(--accent); font-style: italic; }
+  .tok-strike { color: var(--dim); text-decoration: line-through; }
+  .tok-html { color: var(--dim); font-style: italic; }
+
+  .caret {
+    display: inline-block; width: 0.55ch; height: 1.1em;
+    background: var(--accent); vertical-align: text-bottom;
+    animation: blink 1s steps(2) infinite; margin-left: -1px;
+  }
+  @keyframes blink { 0%, 50% { opacity: 1 } 50.01%, 100% { opacity: 0 } }
+
+  /* Minimap */
+  .minimap {
+    border-left: 1px solid var(--hair);
+    padding: 20px 10px; overflow: hidden;
+  }
+  .minimap .bar { height: 3px; margin-bottom: 3px; border-radius: 1px; }
+
+  /* Status bar */
+  .statusbar {
+    display: flex; background: var(--accent); color: #fff;
+    padding: 5px 14px; font-size: 10px; letter-spacing: 0.16em;
+    gap: 20px; flex-shrink: 0;
+  }
+  .statusbar .right { margin-left: auto; display: flex; gap: 20px; }
+  .statusbar .seg { cursor: pointer; opacity: 0.9; }
+  .statusbar .seg:hover { opacity: 1; }
+
+  /* Command palette */
+  .cmdpal {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+    width: 520px; max-width: calc(100vw - 40px);
+    background: var(--chrome-bg); border: 1px solid var(--hair);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    font-size: 12px; z-index: 100;
+  }
+  .cmdpal .head {
+    padding: 10px 14px; border-bottom: 1px solid var(--hair);
+    color: var(--dim); display: flex; gap: 10px; align-items: center;
+  }
+  .cmdpal .head input {
+    background: transparent; border: 0; color: var(--fg); flex: 1;
+    font-family: inherit; font-size: 13px; outline: none;
+  }
+  .cmdpal .item {
+    padding: 8px 14px; cursor: pointer;
+    display: flex; gap: 14px; align-items: center;
+  }
+  .cmdpal .item:hover, .cmdpal .item.on { background: color-mix(in oklab, var(--accent) 20%, transparent); }
+  .cmdpal .item .k { color: var(--dim); font-size: 10px; letter-spacing: 0.2em; }
+  .cmdpal .item .t { color: var(--fg); }
+
+  /* Hint toast */
+  .hint {
+    position: fixed; bottom: 34px; right: 16px;
+    background: var(--chrome-bg); border: 1px solid var(--hair);
+    padding: 8px 12px; font-size: 11px; color: var(--dim);
+    letter-spacing: 0.1em; z-index: 50;
+  }
+  .hint b { color: var(--fg); }
+
+  /* Tweaks panel */
+  .tweaks-panel {
+    position: fixed; right: 16px; bottom: 50px; z-index: 200;
+    background: var(--chrome-bg); color: var(--fg);
+    font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px;
+    padding: 14px 16px; width: 240px; letter-spacing: 0.08em;
+    border: 1px solid var(--hair); display: none;
+  }
+  .tweaks-panel.on { display: block; }
+  .tweaks-panel h4 {
+    margin: 0 0 10px; font-size: 10px; letter-spacing: 0.24em;
+    text-transform: uppercase; color: var(--dim); font-weight: 500;
+  }
+  .tweaks-panel .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; }
+  .tweaks-panel label { color: var(--dim); }
+  .tweaks-panel select, .tweaks-panel button {
+    background: transparent; color: var(--fg); border: 1px solid var(--hair);
+    padding: 3px 6px; font-family: inherit; font-size: 10px; letter-spacing: 0.1em;
+    cursor: pointer;
+  }
+  .tweaks-panel button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tweaks-panel .seg { display: flex; gap: 2px; }
+
+  /* Scrollbar */
+  .doc::-webkit-scrollbar { width: 10px; }
+  .doc::-webkit-scrollbar-thumb { background: var(--hair); }
+  .doc::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body data-theme="default-dark">
+
+<div class="chrome">
+  <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+  <span class="file">draft.md<span class="mod" id="mod-dot">●</span></span>
+  <div class="right">
+    <span id="branch">⎇ main</span>
+    <span>UTF-8</span>
+    <span id="theme-label">default-dark</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active">draft.md</div>
+  <div class="tab">profile.json</div>
+  <div class="tab">links.yml</div>
+  <div class="path">~/about-me/</div>
+</div>
+
+<div class="editor">
+  <div class="gutter" id="gutter"></div>
+  <div class="doc" id="doc"></div>
+  <div class="minimap" id="minimap"></div>
+</div>
+
+<div class="statusbar">
+  <span class="seg">MARKDOWN</span>
+  <span class="seg">UTF-8</span>
+  <span class="seg">LF</span>
+  <span id="draft-age" class="seg">draft · 編集中</span>
+  <div class="right">
+    <span id="words">0 words</span>
+    <span id="caret-pos">Ln 1, Col 1</span>
+    <span class="seg" id="toggle-serif" title="toggle font">ゴシック</span>
+    <span class="seg" id="toggle-tweaks" title="⌘K">⌘K</span>
+    <a class="seg back-home" href="index.html" title="back to /" style="color:#fff;text-decoration:none">← /</a>
+  </div>
+</div>
+
+<div id="cmdpal" class="cmdpal" style="display:none">
+  <div class="head">
+    <span>&gt;</span>
+    <input id="cmd-input" placeholder="theme / font / retype / visit..." />
+  </div>
+  <div id="cmd-list"></div>
+</div>
+
+<div id="tweaks" class="tweaks-panel">
+  <h4>Tweaks</h4>
+  <div class="row"><label>theme</label>
+    <select id="tw-theme">
+      <option value="default-dark">default dark</option>
+      <option value="solarized-dark">solarized dark</option>
+      <option value="dracula">dracula</option>
+      <option value="nord">nord</option>
+      <option value="paper-light">paper light</option>
+    </select>
+  </div>
+  <div class="row"><label>font</label>
+    <div class="seg" id="tw-serif">
+      <button data-v="sans">ゴシック</button><button data-v="serif">明朝</button>
+    </div>
+  </div>
+  <div class="row"><label>typing</label>
+    <div class="seg" id="tw-typing">
+      <button data-v="on">on</button><button data-v="off">off</button>
+    </div>
+  </div>
+  <div class="row"><label>speed</label><input id="tw-speed" type="range" min="10" max="80" step="2" style="flex:1" /></div>
+</div>
+
+<div class="hint" id="hint">
+  <b>⌘K</b> command · <b>click</b> a link · <b>T</b> type again
+</div>
+
+<script>
+(() => {
+  // --- TWEAKS DEFAULTS ---
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "theme": "default-dark",
+    "serif": false,
+    "typing": true,
+    "speed": 28
+  }/*EDITMODE-END*/;
+
+  let state = (() => {
+    try {
+      const raw = localStorage.getItem('editor-tweak');
+      if (raw) return { ...TWEAK_DEFAULTS, ...JSON.parse(raw) };
+    } catch(e) {}
+    return { ...TWEAK_DEFAULTS };
+  })();
+
+  // --- DOCUMENT MODEL ---
+  // Each line: { text, kind, typedChars? }
+  const LINES = [
+    { k: 'comment', t: '<!-- ~/about-me/draft.md — last saved: 2026-04-19 -->' },
+    { k: 'comment', t: '<!-- status: 下書きのまま -->' },
+    { k: 'blank', t: '' },
+    { k: 'h1',   t: '# こはるなぎ' },
+    { k: 'blank', t: '' },
+    { k: 'quote', t: '> 下書きのまま生きている。' },
+    { k: 'blank', t: '' },
+    { k: 'p',    t: 'SIerに11年勤めたあと、自治体に転職してDX推進に' },
+    { k: 'p',    t: '関わりながら、書くことを始めました。AIと人間の' },
+    { k: 'p',    t: 'あいだにある問いに関心があり、エッセイや制作の' },
+    { k: 'p',    t: 'テーマになっています。' },
+    { k: 'blank', t: '' },
+    { k: 'h2',   t: '## links' },
+    { k: 'blank', t: '' },
+    { k: 'link', t: '- [note](https://note.com/koharunagi_) — エッセイ・日記', href: 'https://note.com/koharunagi_' },
+    { k: 'link', t: '- [あなたのスマホはどこにありますか？](amazon) — Kindle本', href: 'https://www.amazon.co.jp/dp/B0GVB4NG4V' },
+    { k: 'link', t: '- [GitHub](github.com/craftpaperbag) — コードと残骸たち', href: 'https://github.com/craftpaperbag' },
+    { k: 'blank', t: '' },
+    { k: 'comment', t: '<!-- ご連絡はnoteのDMから / source: github.com/craftpaperbag/about-me -->' },
+  ];
+
+  // --- TOKENIZER for one line ---
+  // Renders a line up to `upto` chars (for typing animation)
+  function renderLine(ln, upto) {
+    const t = ln.t.slice(0, upto);
+    if (ln.k === 'blank') return '&nbsp;';
+    if (ln.k === 'comment') return `<span class="tok-comment">${escapeHtml(t)}</span>`;
+    if (ln.k === 'h1') {
+      if (t.length <= 2) return `<span class="tok-h1mark">${escapeHtml(t)}</span>`;
+      return `<span class="tok-h1mark">${escapeHtml(t.slice(0,2))}</span><span class="tok-h1">${escapeHtml(t.slice(2))}</span>`;
+    }
+    if (ln.k === 'h2') {
+      if (t.length <= 3) return `<span class="tok-h2mark">${escapeHtml(t)}</span>`;
+      return `<span class="tok-h2mark">${escapeHtml(t.slice(0,3))}</span><span class="tok-h2">${escapeHtml(t.slice(3))}</span>`;
+    }
+    if (ln.k === 'quote') {
+      if (t.length <= 2) return `<span class="tok-quote-mark">${escapeHtml(t)}</span>`;
+      return `<span class="tok-quote-mark">${escapeHtml(t.slice(0,2))}</span><span class="tok-quote-jp">${escapeHtml(t.slice(2))}</span>`;
+    }
+    if (ln.k === 'p') return `<span class="tok-jp">${escapeHtml(t)}</span>`;
+    if (ln.k === 'link') {
+      // e.g. "- [name](url) — desc"
+      const m = t.match(/^(- )?(\[([^\]]*)\])?(\(([^)]*)\))?( — (.*))?$/);
+      if (!m) return `<span class="tok-jp">${escapeHtml(t)}</span>`;
+      let html = '';
+      if (m[1]) html += `<span class="tok-bullet">${escapeHtml(m[1])}</span>`;
+      if (m[2]) {
+        html += `<span class="tok-bracket">[</span>`;
+        html += `<span class="tok-linkname">${escapeHtml(m[3]||'')}</span>`;
+        // Only close bracket if full [..] is typed (i.e. contains ])
+        if (t.includes(']')) html += `<span class="tok-bracket">]</span>`;
+      }
+      if (m[4]) {
+        html += `<span class="tok-bracket">(</span>`;
+        html += `<span class="tok-url">${escapeHtml(m[5]||'')}</span>`;
+        if (t.includes(')')) html += `<span class="tok-bracket">)</span>`;
+      }
+      if (m[6]) {
+        html += `<span class="tok-dash"> — </span>`;
+        html += `<span class="tok-jp">${escapeHtml(m[7]||'')}</span>`;
+      }
+      return html || `<span class="tok-jp">${escapeHtml(t)}</span>`;
+    }
+    return escapeHtml(t);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  // --- STATE for typing ---
+  // currentLine: which line the caret is on (0-indexed)
+  // currentCol: how many chars of that line are typed
+  let currentLine = 0;
+  let currentCol = 0;
+  let typingTimer = null;
+  let typingDone = false;
+
+  function totalLines() { return LINES.length; }
+
+  function renderAll() {
+    const doc = document.getElementById('doc');
+    const gutter = document.getElementById('gutter');
+    const minimap = document.getElementById('minimap');
+
+    let docHtml = '';
+    let gutterHtml = '';
+    let mapHtml = '';
+    for (let i = 0; i < LINES.length; i++) {
+      const ln = LINES[i];
+      const isCurrent = i === currentLine && !typingDone;
+      let chars;
+      if (i < currentLine) chars = ln.t.length;
+      else if (i === currentLine) chars = currentCol;
+      else chars = 0;
+      if (typingDone) chars = ln.t.length;
+
+      let body = renderLine(ln, chars);
+      if (isCurrent) body += '<span class="caret"></span>';
+      // If this line is a link and fully typed, wrap in anchor
+      if (ln.k === 'link' && ln.href && chars >= ln.t.length) {
+        body = `<a href="${ln.href}" target="_blank" rel="noopener" style="text-decoration:none">${body}</a>`;
+      }
+      docHtml += `<div class="ln${isCurrent ? ' current' : ''}" data-i="${i}">${body}</div>`;
+      gutterHtml += `<div class="ln${isCurrent ? ' cursor' : ''}">${i+1}</div>`;
+
+      // minimap bar
+      const color = ln.k === 'h1' ? 'var(--accent)'
+        : ln.k === 'h2' ? 'var(--accent)'
+        : ln.k === 'comment' ? 'var(--dim)'
+        : ln.k === 'link' ? 'var(--blue)'
+        : ln.k === 'quote' ? 'var(--accent-alt)'
+        : ln.k === 'blank' ? 'transparent'
+        : 'var(--fg)';
+      const op = ln.k === 'comment' ? 0.3 : (i <= currentLine || typingDone ? 0.7 : 0.15);
+      const w = ln.k === 'blank' ? 0 : Math.min(100, ((ln.t.length || 2) * 2));
+      mapHtml += `<div class="bar" style="background:${color};opacity:${op};width:${w}%"></div>`;
+    }
+
+    doc.innerHTML = docHtml;
+    gutter.innerHTML = gutterHtml;
+    minimap.innerHTML = mapHtml;
+
+    // status
+    const caretLine = typingDone ? LINES.length : (currentLine + 1);
+    const caretCol = typingDone ? 1 : (currentCol + 1);
+    document.getElementById('caret-pos').textContent = `Ln ${caretLine}, Col ${caretCol}`;
+    const totalChars = LINES.reduce((a, l) => a + (i => i<currentLine ? l.t.length : i===currentLine ? currentCol : 0)(LINES.indexOf(l)), 0);
+    const wc = typingDone
+      ? LINES.reduce((a,l) => a + l.t.length, 0)
+      : totalChars;
+    document.getElementById('words').textContent = `${wc} chars`;
+    document.getElementById('mod-dot').textContent = typingDone ? '' : '●';
+    document.getElementById('draft-age').textContent = typingDone ? 'draft · 保存せず' : 'draft · typing…';
+  }
+
+  function step() {
+    if (typingDone) return;
+    const ln = LINES[currentLine];
+    // advance
+    if (ln.k === 'blank') {
+      currentLine++;
+      currentCol = 0;
+    } else if (currentCol < ln.t.length) {
+      currentCol++;
+    } else {
+      currentLine++;
+      currentCol = 0;
+    }
+    if (currentLine >= LINES.length) {
+      typingDone = true;
+      currentLine = LINES.length - 1;
+      currentCol = LINES[currentLine].t.length;
+    }
+    renderAll();
+    scheduleNext();
+  }
+
+  function scheduleNext() {
+    if (typingDone) return;
+    const ln = LINES[currentLine];
+    let delay = 1000 / state.speed; // base
+    // Vary for realism
+    const ch = ln.t[currentCol - 1];
+    if (ch === '。' || ch === '、') delay *= 4;
+    else if (ch === ' ') delay *= 1.8;
+    else if (ln.k === 'blank') delay = 240;
+    else if (currentCol === 0) delay *= 2.5;
+    delay += Math.random() * (1000 / state.speed);
+    typingTimer = setTimeout(step, delay);
+  }
+
+  function startTyping() {
+    clearTimeout(typingTimer);
+    currentLine = 0; currentCol = 0; typingDone = false;
+    renderAll();
+    typingTimer = setTimeout(step, 500);
+  }
+
+  function completeInstantly() {
+    clearTimeout(typingTimer);
+    typingDone = true;
+    currentLine = LINES.length - 1;
+    currentCol = LINES[currentLine].t.length;
+    renderAll();
+  }
+
+  // --- THEME / TWEAKS wiring ---
+  function applyState() {
+    document.body.dataset.theme = state.theme;
+    document.body.classList.toggle('serif', !!state.serif);
+    document.getElementById('theme-label').textContent = state.theme;
+    document.getElementById('toggle-serif').textContent = state.serif ? '明朝' : 'ゴシック';
+    document.getElementById('tw-theme').value = state.theme;
+    document.querySelectorAll('#tw-serif button').forEach(b => {
+      b.classList.toggle('active', (b.dataset.v === 'serif') === !!state.serif);
+    });
+    document.querySelectorAll('#tw-typing button').forEach(b => {
+      b.classList.toggle('active', (b.dataset.v === 'on') === !!state.typing);
+    });
+    document.getElementById('tw-speed').value = state.speed;
+    try { localStorage.setItem('editor-tweak', JSON.stringify(state)); } catch(e) {}
+    try {
+      window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { ...state } }, '*');
+    } catch(e) {}
+  }
+
+  document.getElementById('tw-theme').addEventListener('change', e => {
+    state.theme = e.target.value; applyState();
+  });
+  document.querySelectorAll('#tw-serif button').forEach(b => {
+    b.addEventListener('click', () => {
+      state.serif = b.dataset.v === 'serif'; applyState();
+    });
+  });
+  document.querySelectorAll('#tw-typing button').forEach(b => {
+    b.addEventListener('click', () => {
+      const on = b.dataset.v === 'on';
+      state.typing = on; applyState();
+      if (on) startTyping(); else completeInstantly();
+    });
+  });
+  document.getElementById('tw-speed').addEventListener('input', e => {
+    state.speed = parseInt(e.target.value, 10); applyState();
+  });
+  document.getElementById('toggle-serif').addEventListener('click', () => {
+    state.serif = !state.serif; applyState();
+  });
+  document.getElementById('toggle-tweaks').addEventListener('click', openCmdpal);
+
+  // --- Command palette ---
+  const COMMANDS = [
+    { k: 'theme', t: 'Theme: Default Dark', fn: () => { state.theme='default-dark'; applyState(); } },
+    { k: 'theme', t: 'Theme: Solarized Dark', fn: () => { state.theme='solarized-dark'; applyState(); } },
+    { k: 'theme', t: 'Theme: Dracula', fn: () => { state.theme='dracula'; applyState(); } },
+    { k: 'theme', t: 'Theme: Nord', fn: () => { state.theme='nord'; applyState(); } },
+    { k: 'theme', t: 'Theme: Paper Light', fn: () => { state.theme='paper-light'; applyState(); } },
+    { k: 'font',  t: 'Font: ゴシック (sans)', fn: () => { state.serif=false; applyState(); } },
+    { k: 'font',  t: 'Font: 明朝 (serif)', fn: () => { state.serif=true; applyState(); } },
+    { k: 'edit',  t: 'Retype document', fn: () => startTyping() },
+    { k: 'edit',  t: 'Complete now (skip typing)', fn: () => completeInstantly() },
+    { k: 'tweaks', t: 'Toggle tweaks panel', fn: () => document.getElementById('tweaks').classList.toggle('on') },
+    { k: 'nav',   t: 'Open note', fn: () => window.open('https://note.com/koharunagi_','_blank') },
+    { k: 'nav',   t: 'Open Kindle book', fn: () => window.open('https://www.amazon.co.jp/dp/B0GVB4NG4V','_blank') },
+    { k: 'nav',   t: 'Open GitHub', fn: () => window.open('https://github.com/craftpaperbag','_blank') },
+    { k: 'nav',   t: 'Back to / (public page)', fn: () => location.href = 'index.html' },
+  ];
+
+  let cmdSel = 0;
+  function openCmdpal() {
+    document.getElementById('cmdpal').style.display = 'block';
+    const inp = document.getElementById('cmd-input');
+    inp.value = ''; cmdSel = 0;
+    renderCmdList('');
+    setTimeout(() => inp.focus(), 30);
+  }
+  function closeCmdpal() { document.getElementById('cmdpal').style.display = 'none'; }
+  function renderCmdList(q) {
+    const list = document.getElementById('cmd-list');
+    const filtered = COMMANDS.filter(c => !q || c.t.toLowerCase().includes(q.toLowerCase()) || c.k.includes(q.toLowerCase()));
+    list.innerHTML = filtered.map((c, i) =>
+      `<div class="item ${i === cmdSel ? 'on' : ''}" data-i="${i}"><span class="k">${c.k.toUpperCase()}</span><span class="t">${c.t}</span></div>`
+    ).join('');
+    list.querySelectorAll('.item').forEach(el => {
+      el.addEventListener('click', () => {
+        const c = filtered[parseInt(el.dataset.i,10)]; if (c) { c.fn(); closeCmdpal(); }
+      });
+    });
+    list.dataset.filtered = JSON.stringify(filtered.map(f=>f.t));
+    list._filtered = filtered;
+  }
+  document.getElementById('cmd-input').addEventListener('input', e => {
+    cmdSel = 0; renderCmdList(e.target.value);
+  });
+  document.getElementById('cmd-input').addEventListener('keydown', e => {
+    const list = document.getElementById('cmd-list');
+    const items = list._filtered || [];
+    if (e.key === 'ArrowDown') { cmdSel = Math.min(items.length-1, cmdSel+1); renderCmdList(document.getElementById('cmd-input').value); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { cmdSel = Math.max(0, cmdSel-1); renderCmdList(document.getElementById('cmd-input').value); e.preventDefault(); }
+    else if (e.key === 'Enter') { const c = items[cmdSel]; if (c) { c.fn(); closeCmdpal(); } }
+    else if (e.key === 'Escape') { closeCmdpal(); }
+  });
+
+  // Global keys
+  window.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault(); openCmdpal();
+    } else if (e.key === 'Escape') {
+      closeCmdpal();
+    } else if (!document.getElementById('cmdpal').style.display || document.getElementById('cmdpal').style.display === 'none') {
+      if (e.key.toLowerCase() === 't' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        // retype
+        startTyping();
+      }
+    }
+  });
+
+  // Edit-mode host handshake
+  window.addEventListener('message', (e) => {
+    if (!e.data || typeof e.data !== 'object') return;
+    if (e.data.type === '__activate_edit_mode') {
+      document.getElementById('tweaks').classList.add('on');
+    } else if (e.data.type === '__deactivate_edit_mode') {
+      document.getElementById('tweaks').classList.remove('on');
+    }
+  });
+  try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch(e) {}
+
+  // INIT
+  applyState();
+  if (state.typing) startTyping();
+  else completeInstantly();
+
+  // hide hint after a bit
+  setTimeout(() => {
+    const h = document.getElementById('hint');
+    if (h) h.style.transition = 'opacity 0.8s'; h.style.opacity = '0';
+    setTimeout(() => h && h.remove(), 1000);
+  }, 8000);
+
+})();
+</script>
+
+</body>
+</html>

@@ -52,3 +52,16 @@ footer {
 footer small {
   opacity: 0.4;
 }
+
+/* hidden egg — footer end */
+a.egg {
+  display: inline-block;
+  text-decoration: none;
+  opacity: 0.25;
+  font-size: 0.9em;
+  letter-spacing: 0;
+  transition: opacity 0.4s;
+}
+a.egg:hover {
+  opacity: 1;
+}
