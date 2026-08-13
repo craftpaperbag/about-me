@@ -324,7 +324,7 @@
     { k: 'h2',   t: '## links' },
     { k: 'blank', t: '' },
     { k: 'link', t: '- [note](https://note.com/koharunagi_) — エッセイ・日記', href: 'https://note.com/koharunagi_' },
-    { k: 'link', t: '- [あなたのスマホはどこにありますか？](amazon) — Kindle本', href: 'https://www.amazon.co.jp/dp/B0GVB4NG4V' },
+    { k: 'link', t: '- [あなたのスマホはどこにありますか？](note) — 有料記事', href: 'https://note.com/koharunagi_/n/n6ee8d8d39ea9' },
     { k: 'link', t: '- [GitHub](github.com/craftpaperbag) — コードと残骸たち', href: 'https://github.com/craftpaperbag' },
     { k: 'blank', t: '' },
     { k: 'comment', t: '<!-- ご連絡はnoteのDMから / source: github.com/craftpaperbag/about-me -->' },
@@ -554,7 +554,8 @@
     { k: 'edit',  t: 'Complete now (skip typing)', fn: () => completeInstantly() },
     { k: 'tweaks', t: 'Toggle tweaks panel', fn: () => document.getElementById('tweaks').classList.toggle('on') },
     { k: 'nav',   t: 'Open note', fn: () => window.open('https://note.com/koharunagi_','_blank') },
-    { k: 'nav',   t: 'Open Kindle book', fn: () => window.open('https://www.amazon.co.jp/dp/B0GVB4NG4V','_blank') },
+    { k: 'nav',   t: 'Open 有料記事 (note)', fn: () => window.open('https://note.com/koharunagi_/n/n6ee8d8d39ea9','_blank') },
+    { k: 'nav',   t: 'Open Kindle version', fn: () => window.open('https://www.amazon.co.jp/dp/B0GVB4NG4V','_blank') },
     { k: 'nav',   t: 'Open GitHub', fn: () => window.open('https://github.com/craftpaperbag','_blank') },
     { k: 'nav',   t: 'Back to / (public page)', fn: () => location.href = 'index.html' },
   ];
